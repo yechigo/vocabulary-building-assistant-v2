@@ -273,7 +273,7 @@
             <div style="margin-top: 10px; text-align: center;">
                 <label style="display: inline-flex; align-items: center; cursor: pointer; font-size: 14px;">
                     <input type="checkbox" id="loopMode" style="width: auto; margin-right: 8px;">
-                    <span>🔁 無限ループ</span>
+                    <span>🔁 ループ</span>
                 </label>
             </div>
 
@@ -895,7 +895,7 @@
         async function playNext() {
             if (!isPlaying || currentIndex >= learningData.length) {
                 if (isPlaying) {
-                    // 無限ループモードがONの場合は最初から繰り返す
+                    // ループモードがONの場合は最初から繰り返す
                     const loopMode = document.getElementById('loopMode').checked;
 
                     if (loopMode) {
