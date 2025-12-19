@@ -1,0 +1,780 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>英語学習アプリ v2 - ロック画面対応版</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Hiragino Sans', sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .container {
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            max-width: 500px;
+            width: 100%;
+            padding: 30px;
+        }
+
+        h1 {
+            color: #667eea;
+            text-align: center;
+            margin-bottom: 10px;
+            font-size: 24px;
+        }
+
+        .version-badge {
+            text-align: center;
+            color: #764ba2;
+            font-size: 12px;
+            margin-bottom: 20px;
+            font-weight: 600;
+        }
+
+        .setup-section, .control-section {
+            margin-bottom: 25px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 8px;
+            color: #333;
+            font-weight: 600;
+            font-size: 14px;
+        }
+
+        input[type="text"], input[type="number"], input[type="password"] {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #e0e0e0;
+            border-radius: 10px;
+            font-size: 14px;
+            transition: border-color 0.3s;
+        }
+
+        input[type="text"]:focus, input[type="number"]:focus, input[type="password"]:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        .help-text {
+            font-size: 12px;
+            color: #666;
+            margin-top: 5px;
+        }
+
+        button {
+            width: 100%;
+            padding: 15px;
+            border: none;
+            border-radius: 10px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            margin-top: 10px;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 20px rgba(102, 126, 234, 0.4);
+        }
+
+        .btn-primary:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .btn-danger {
+            background: #ef4444;
+            color: white;
+        }
+
+        .btn-danger:hover {
+            background: #dc2626;
+        }
+
+        .status-box {
+            background: #f3f4f6;
+            border-radius: 10px;
+            padding: 15px;
+            margin-top: 20px;
+        }
+
+        .current-text {
+            font-size: 18px;
+            color: #333;
+            margin-bottom: 10px;
+            min-height: 60px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+        }
+
+        .progress {
+            font-size: 14px;
+            color: #667eea;
+            text-align: center;
+            font-weight: 600;
+        }
+
+        .settings-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+        }
+
+        .hidden {
+            display: none;
+        }
+
+        .loading {
+            text-align: center;
+            color: #667eea;
+            font-weight: 600;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+
+        .pulse {
+            animation: pulse 2s ease-in-out infinite;
+        }
+
+        .info-box {
+            background: #e8f5e9;
+            padding: 15px;
+            border-radius: 10px;
+            margin-bottom: 15px;
+            font-size: 13px;
+            line-height: 1.6;
+        }
+
+        .warning-box {
+            background: #fff3cd;
+            padding: 15px;
+            border-radius: 10px;
+            margin-bottom: 15px;
+            font-size: 13px;
+            line-height: 1.6;
+        }
+
+        .api-setup {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 10px;
+            margin-bottom: 15px;
+        }
+
+        .toggle-section {
+            cursor: pointer;
+            padding: 10px;
+            background: #f0f0f0;
+            border-radius: 5px;
+            margin-bottom: 10px;
+            user-select: none;
+        }
+
+        .toggle-section:hover {
+            background: #e0e0e0;
+        }
+
+        .collapsible-content {
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.3s ease;
+        }
+
+        .collapsible-content.open {
+            max-height: 1000px;
+        }
+
+        .cache-info {
+            background: #e3f2fd;
+            padding: 10px;
+            border-radius: 5px;
+            margin-top: 10px;
+            font-size: 12px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🎧 英語学習アプリ v2</h1>
+        <div class="version-badge">🔓 ロック画面対応版 + 音声キャッシュ</div>
+
+        <div id="setupSection" class="setup-section">
+            <div class="info-box">
+                ✅ <strong>新機能:</strong><br>
+                • ロック画面でも音声再生が継続<br>
+                • 音声をキャッシュして2回目以降は即座に再生<br>
+                • Google Cloud TTS APIで高品質な音声
+            </div>
+
+            <div class="api-setup">
+                <div class="toggle-section" onclick="toggleApiSetup()">
+                    ⚙️ Google Cloud TTS API 設定 <span id="apiToggleIcon">▼</span>
+                </div>
+                <div id="apiSetupContent" class="collapsible-content">
+                    <label for="apiKey">API キー:</label>
+                    <input type="password" id="apiKey" placeholder="AIza...">
+                    <div class="help-text">
+                        ※ 初回のみ設定が必要です（ブラウザに保存されます）<br>
+                        ※ 設定手順は README を参照
+                    </div>
+                    <button class="btn-primary" onclick="saveApiKey()" style="margin-top: 10px;">API キーを保存</button>
+                </div>
+            </div>
+
+            <div id="autoLoadSection" class="setup-section">
+                <div class="info-box">
+                    ✅ Google Apps Script設定済み<br>
+                    ページを開くと自動的に最新データを読み込みます
+                </div>
+                <button class="btn-primary" onclick="loadDataFromAppsScript()">最新データを読み込み</button>
+            </div>
+
+            <div class="settings-grid">
+                <div>
+                    <label for="waitTime">待機時間（秒）:</label>
+                    <input type="number" id="waitTime" value="5" min="1" max="30">
+                </div>
+                <div>
+                    <label for="repeatCount">繰り返し回数:</label>
+                    <input type="number" id="repeatCount" value="1" min="1" max="10">
+                </div>
+            </div>
+
+            <div class="settings-grid">
+                <div style="grid-column: 1 / -1;">
+                    <label style="display: flex; align-items: center; cursor: pointer;">
+                        <input type="checkbox" id="shuffleMode" style="width: auto; margin-right: 8px;">
+                        <span>シャッフルモード（ランダム順で再生）</span>
+                    </label>
+                </div>
+            </div>
+
+            <div class="settings-grid">
+                <div>
+                    <label for="jpColumn">和訳の列:</label>
+                    <input type="text" id="jpColumn" value="C" maxlength="2">
+                </div>
+                <div>
+                    <label for="enColumn">英文の列:</label>
+                    <input type="text" id="enColumn" value="B" maxlength="2">
+                </div>
+            </div>
+
+            <div class="cache-info hidden" id="cacheInfo">
+                💾 キャッシュ状態: <span id="cacheStatus">確認中...</span>
+            </div>
+        </div>
+
+        <div id="controlSection" class="control-section hidden">
+            <div class="status-box">
+                <div class="current-text" id="currentText">準備完了</div>
+                <div class="progress" id="progress">0 / 0</div>
+            </div>
+
+            <button class="btn-primary" id="startBtn" onclick="startLearning()">学習を開始</button>
+            <button class="btn-primary hidden" id="pauseBtn" onclick="pauseLearning()">一時停止</button>
+            <button class="btn-primary hidden" id="resumeBtn" onclick="resumeLearning()">再開</button>
+            <button class="btn-danger hidden" id="stopBtn" onclick="stopLearning()">停止</button>
+            <button class="btn-primary" onclick="backToSetup()">設定に戻る</button>
+            <button class="btn-danger" onclick="clearCache()" style="margin-top: 5px; font-size: 14px;">キャッシュをクリア</button>
+        </div>
+    </div>
+
+    <!-- 非表示のAudioエレメント -->
+    <audio id="audioPlayer" style="display: none;"></audio>
+
+    <script>
+        // ========================================
+        // 設定
+        // ========================================
+        const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycby1nEfEygjVIx0WXTjyPeL_As5aHsua9osVCbvvhuFcFHkWlZD33kWIjLuSt8AP8FJL/exec';
+        const GOOGLE_TTS_API_URL = 'https://texttospeech.googleapis.com/v1/text:synthesize';
+        const DB_NAME = 'EnglishLearningAppDB';
+        const DB_VERSION = 1;
+        const STORE_NAME = 'audioCache';
+
+        let db = null;
+        let learningData = [];
+        let currentIndex = 0;
+        let isPlaying = false;
+        let currentRepeat = 0;
+        let audioPlayer = null;
+        let currentAudioBlob = null;
+
+        // ========================================
+        // IndexedDB 初期化
+        // ========================================
+        function initDB() {
+            return new Promise((resolve, reject) => {
+                const request = indexedDB.open(DB_NAME, DB_VERSION);
+
+                request.onerror = () => reject(request.error);
+                request.onsuccess = () => {
+                    db = request.result;
+                    resolve(db);
+                };
+
+                request.onupgradeneeded = (event) => {
+                    const db = event.target.result;
+                    if (!db.objectStoreNames.contains(STORE_NAME)) {
+                        db.createObjectStore(STORE_NAME, { keyPath: 'id' });
+                    }
+                };
+            });
+        }
+
+        // ========================================
+        // キャッシュ操作
+        // ========================================
+        async function getCachedAudio(text, lang) {
+            if (!db) await initDB();
+            return new Promise((resolve, reject) => {
+                const transaction = db.transaction([STORE_NAME], 'readonly');
+                const store = transaction.objectStore(STORE_NAME);
+                const key = `${lang}:${text}`;
+                const request = store.get(key);
+
+                request.onsuccess = () => resolve(request.result?.audioData);
+                request.onerror = () => reject(request.error);
+            });
+        }
+
+        async function setCachedAudio(text, lang, audioData) {
+            if (!db) await initDB();
+            return new Promise((resolve, reject) => {
+                const transaction = db.transaction([STORE_NAME], 'readwrite');
+                const store = transaction.objectStore(STORE_NAME);
+                const key = `${lang}:${text}`;
+                const request = store.put({ id: key, audioData: audioData, timestamp: Date.now() });
+
+                request.onsuccess = () => resolve();
+                request.onerror = () => reject(request.error);
+            });
+        }
+
+        async function clearCache() {
+            if (!db) await initDB();
+            return new Promise((resolve, reject) => {
+                const transaction = db.transaction([STORE_NAME], 'readwrite');
+                const store = transaction.objectStore(STORE_NAME);
+                const request = store.clear();
+
+                request.onsuccess = () => {
+                    alert('キャッシュをクリアしました');
+                    updateCacheInfo();
+                    resolve();
+                };
+                request.onerror = () => reject(request.error);
+            });
+        }
+
+        async function updateCacheInfo() {
+            if (!db) return;
+            const transaction = db.transaction([STORE_NAME], 'readonly');
+            const store = transaction.objectStore(STORE_NAME);
+            const request = store.count();
+
+            request.onsuccess = () => {
+                const count = request.result;
+                document.getElementById('cacheStatus').textContent = `${count}件の音声をキャッシュ中`;
+                document.getElementById('cacheInfo').classList.remove('hidden');
+            };
+        }
+
+        // ========================================
+        // Google Cloud TTS API
+        // ========================================
+        function saveApiKey() {
+            const apiKey = document.getElementById('apiKey').value.trim();
+            if (!apiKey) {
+                alert('APIキーを入力してください');
+                return;
+            }
+            localStorage.setItem('googleTtsApiKey', apiKey);
+            alert('APIキーを保存しました');
+        }
+
+        function getApiKey() {
+            return localStorage.getItem('googleTtsApiKey') || '';
+        }
+
+        async function generateAudio(text, lang) {
+            const apiKey = getApiKey();
+            if (!apiKey) {
+                throw new Error('APIキーが設定されていません。設定セクションでAPIキーを入力してください。');
+            }
+
+            const voiceConfig = lang === 'ja-JP'
+                ? { languageCode: 'ja-JP', name: 'ja-JP-Standard-A' }
+                : { languageCode: 'en-US', name: 'en-US-Standard-C' };
+
+            const requestBody = {
+                input: { text: text },
+                voice: voiceConfig,
+                audioConfig: { audioEncoding: 'MP3', speakingRate: 0.9 }
+            };
+
+            const response = await fetch(`${GOOGLE_TTS_API_URL}?key=${apiKey}`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(requestBody)
+            });
+
+            if (!response.ok) {
+                const error = await response.json();
+                throw new Error(`TTS API Error: ${error.error?.message || 'Unknown error'}`);
+            }
+
+            const data = await response.json();
+            const audioContent = data.audioContent;
+
+            // Base64をBlobに変換
+            const byteCharacters = atob(audioContent);
+            const byteNumbers = new Array(byteCharacters.length);
+            for (let i = 0; i < byteCharacters.length; i++) {
+                byteNumbers[i] = byteCharacters.charCodeAt(i);
+            }
+            const byteArray = new Uint8Array(byteNumbers);
+            return new Blob([byteArray], { type: 'audio/mp3' });
+        }
+
+        async function getOrGenerateAudio(text, lang) {
+            // キャッシュを確認
+            let audioData = await getCachedAudio(text, lang);
+
+            if (audioData) {
+                console.log('Using cached audio for:', text);
+                return audioData;
+            }
+
+            // キャッシュになければ生成
+            console.log('Generating new audio for:', text);
+            audioData = await generateAudio(text, lang);
+
+            // キャッシュに保存
+            await setCachedAudio(text, lang, audioData);
+            await updateCacheInfo();
+
+            return audioData;
+        }
+
+        // ========================================
+        // 音声再生（Audio API + Media Session）
+        // ========================================
+        async function playAudio(text, lang, callback) {
+            try {
+                const audioBlob = await getOrGenerateAudio(text, lang);
+                const audioUrl = URL.createObjectURL(audioBlob);
+
+                if (!audioPlayer) {
+                    audioPlayer = document.getElementById('audioPlayer');
+                }
+
+                audioPlayer.src = audioUrl;
+                audioPlayer.onended = () => {
+                    URL.revokeObjectURL(audioUrl);
+                    if (callback) callback();
+                };
+                audioPlayer.onerror = () => {
+                    URL.revokeObjectURL(audioUrl);
+                    console.error('Audio playback error');
+                    if (callback) callback();
+                };
+
+                await audioPlayer.play();
+
+                // Media Session API でロック画面コントロール
+                if ('mediaSession' in navigator) {
+                    navigator.mediaSession.metadata = new MediaMetadata({
+                        title: text,
+                        artist: '英語学習アプリ',
+                        album: `${currentIndex + 1} / ${learningData.length}`
+                    });
+
+                    navigator.mediaSession.setActionHandler('play', () => {
+                        audioPlayer.play();
+                    });
+
+                    navigator.mediaSession.setActionHandler('pause', () => {
+                        audioPlayer.pause();
+                        pauseLearning();
+                    });
+                }
+            } catch (error) {
+                console.error('Audio generation/playback error:', error);
+                alert('音声の生成または再生に失敗しました: ' + error.message);
+                if (callback) callback();
+            }
+        }
+
+        // ========================================
+        // UI制御
+        // ========================================
+        function toggleApiSetup() {
+            const content = document.getElementById('apiSetupContent');
+            const icon = document.getElementById('apiToggleIcon');
+            content.classList.toggle('open');
+            icon.textContent = content.classList.contains('open') ? '▲' : '▼';
+        }
+
+        // ページ読み込み時
+        window.addEventListener('DOMContentLoaded', async () => {
+            await initDB();
+            await updateCacheInfo();
+
+            // APIキーが保存されていれば表示
+            const savedApiKey = getApiKey();
+            if (savedApiKey) {
+                document.getElementById('apiKey').value = savedApiKey;
+            }
+
+            // 自動データ読み込み
+            if (APPS_SCRIPT_URL) {
+                loadDataFromAppsScript();
+            }
+        });
+
+        // ========================================
+        // データ読み込み
+        // ========================================
+        function processCSVData(csvText, jpCol, enCol) {
+            try {
+                const rows = parseCSV(csvText);
+                const jpIndex = jpCol.charCodeAt(0) - 65;
+                const enIndex = enCol.charCodeAt(0) - 65;
+
+                learningData = rows
+                    .slice(1)
+                    .filter(row => row[jpIndex] && row[enIndex])
+                    .map(row => ({
+                        japanese: row[jpIndex].trim(),
+                        english: row[enIndex].trim()
+                    }));
+
+                if (learningData.length === 0) {
+                    alert('データが見つかりませんでした。列の設定を確認してください。');
+                    return;
+                }
+
+                currentIndex = 0;
+                document.getElementById('setupSection').classList.add('hidden');
+                document.getElementById('controlSection').classList.remove('hidden');
+                document.getElementById('currentText').textContent = `${learningData.length}件のデータを読み込みました`;
+                document.getElementById('progress').textContent = `0 / ${learningData.length}`;
+
+            } catch (error) {
+                alert('データの処理中にエラーが発生しました: ' + error.message);
+            }
+        }
+
+        async function loadDataFromAppsScript() {
+            if (!APPS_SCRIPT_URL) {
+                alert('Google Apps ScriptのURLが設定されていません。');
+                return;
+            }
+
+            const jpCol = document.getElementById('jpColumn').value.toUpperCase();
+            const enCol = document.getElementById('enColumn').value.toUpperCase();
+
+            try {
+                document.getElementById('currentText').innerHTML = '<div class="loading pulse">最新データを読み込み中...</div>';
+
+                const response = await fetch(APPS_SCRIPT_URL);
+                if (!response.ok) {
+                    throw new Error('データの取得に失敗しました。');
+                }
+
+                const csvText = await response.text();
+                processCSVData(csvText, jpCol, enCol);
+
+            } catch (error) {
+                alert('エラー: ' + error.message);
+                document.getElementById('currentText').textContent = '準備完了';
+            }
+        }
+
+        function parseCSV(text) {
+            const rows = [];
+            const lines = text.split('\n');
+
+            for (let line of lines) {
+                if (!line.trim()) continue;
+
+                const row = [];
+                let cell = '';
+                let inQuotes = false;
+
+                for (let i = 0; i < line.length; i++) {
+                    const char = line[i];
+
+                    if (char === '"') {
+                        if (inQuotes && line[i + 1] === '"') {
+                            cell += '"';
+                            i++;
+                        } else {
+                            inQuotes = !inQuotes;
+                        }
+                    } else if (char === ',' && !inQuotes) {
+                        row.push(cell);
+                        cell = '';
+                    } else {
+                        cell += char;
+                    }
+                }
+                row.push(cell);
+                rows.push(row);
+            }
+
+            return rows;
+        }
+
+        // ========================================
+        // 学習制御
+        // ========================================
+        function shuffleArray(array) {
+            const shuffled = [...array];
+            for (let i = shuffled.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
+            }
+            return shuffled;
+        }
+
+        async function startLearning() {
+            // APIキーチェック
+            if (!getApiKey()) {
+                alert('Google Cloud TTS APIキーが設定されていません。\n設定セクションでAPIキーを入力してください。');
+                return;
+            }
+
+            if (learningData.length === 0) return;
+
+            if (document.getElementById('shuffleMode').checked) {
+                learningData = shuffleArray(learningData);
+            }
+
+            isPlaying = true;
+            currentIndex = 0;
+            currentRepeat = 0;
+            document.getElementById('startBtn').classList.add('hidden');
+            document.getElementById('pauseBtn').classList.remove('hidden');
+            document.getElementById('stopBtn').classList.remove('hidden');
+
+            playNext();
+        }
+
+        function pauseLearning() {
+            isPlaying = false;
+            if (audioPlayer) {
+                audioPlayer.pause();
+            }
+            document.getElementById('pauseBtn').classList.add('hidden');
+            document.getElementById('resumeBtn').classList.remove('hidden');
+        }
+
+        function resumeLearning() {
+            isPlaying = true;
+            document.getElementById('resumeBtn').classList.add('hidden');
+            document.getElementById('pauseBtn').classList.remove('hidden');
+
+            if (audioPlayer && audioPlayer.paused) {
+                audioPlayer.play();
+            } else {
+                playNext();
+            }
+        }
+
+        async function playNext() {
+            if (!isPlaying || currentIndex >= learningData.length) {
+                if (isPlaying) {
+                    const repeatCount = parseInt(document.getElementById('repeatCount').value);
+                    currentRepeat++;
+
+                    if (currentRepeat < repeatCount) {
+                        currentIndex = 0;
+                        playNext();
+                        return;
+                    }
+
+                    document.getElementById('currentText').textContent = '学習完了！お疲れ様でした！';
+                    stopLearning();
+                }
+                return;
+            }
+
+            const item = learningData[currentIndex];
+            const waitTime = parseInt(document.getElementById('waitTime').value) * 1000;
+
+            document.getElementById('progress').textContent =
+                `${currentIndex + 1} / ${learningData.length} (${currentRepeat + 1}周目)`;
+
+            // 和訳を表示して読み上げ
+            document.getElementById('currentText').textContent = item.japanese;
+            await playAudio(item.japanese, 'ja-JP', () => {
+                // 待機時間後に英文を読み上げ
+                setTimeout(async () => {
+                    if (!isPlaying) return;
+
+                    document.getElementById('currentText').textContent = item.english;
+                    await playAudio(item.english, 'en-US', () => {
+                        currentIndex++;
+                        setTimeout(() => {
+                            if (isPlaying) playNext();
+                        }, 1000);
+                    });
+                }, waitTime);
+            });
+        }
+
+        function stopLearning() {
+            isPlaying = false;
+            if (audioPlayer) {
+                audioPlayer.pause();
+                audioPlayer.src = '';
+            }
+            document.getElementById('startBtn').classList.remove('hidden');
+            document.getElementById('pauseBtn').classList.add('hidden');
+            document.getElementById('resumeBtn').classList.add('hidden');
+            document.getElementById('stopBtn').classList.add('hidden');
+            currentRepeat = 0;
+            currentIndex = 0;
+        }
+
+        function backToSetup() {
+            stopLearning();
+            document.getElementById('setupSection').classList.remove('hidden');
+            document.getElementById('controlSection').classList.add('hidden');
+            document.getElementById('currentText').textContent = '準備完了';
+            learningData = [];
+        }
+    </script>
+</body>
+</html>
