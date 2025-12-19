@@ -258,6 +258,8 @@
                 <div class="progress" id="progress">0 / 0</div>
             </div>
 
+            <button class="btn-primary" onclick="loadDataFromAppsScript()">最新データを読み込み</button>
+
             <div class="playback-controls">
                 <button class="btn-secondary" id="prevBtn" onclick="gotoPrevious()" disabled>⏮</button>
                 <button class="btn-primary" id="playPauseBtn" onclick="togglePlayPause()" disabled>▶</button>
@@ -278,7 +280,6 @@
                     ⚙️ 設定を開く <span id="settingsToggleIcon">▼</span>
                 </div>
                 <div id="settingsContent" class="collapsible-content">
-                    <button class="btn-primary" onclick="loadDataFromAppsScript()" style="margin-top: 10px;">最新データを読み込み</button>
 
                     <div class="settings-grid" style="margin-top: 15px;">
                         <div>
@@ -613,16 +614,11 @@
                 document.getElementById('apiKey').value = savedApiKey;
             }
 
-            // 初回は設定を開いた状態にする
+            // 設定は閉じた状態で開始
             const settingsContent = document.getElementById('settingsContent');
             const settingsIcon = document.getElementById('settingsToggleIcon');
-            settingsContent.classList.add('open');
-            settingsIcon.textContent = '▲';
-
-            // 自動データ読み込み
-            if (APPS_SCRIPT_URL) {
-                loadDataFromAppsScript();
-            }
+            settingsContent.classList.remove('open');
+            settingsIcon.textContent = '▼';
         });
 
         // ========================================
