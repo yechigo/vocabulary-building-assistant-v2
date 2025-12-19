@@ -352,6 +352,7 @@
 
         let db = null;
         let learningData = [];
+        let originalData = []; // 元のデータを保持（シャッフル前）
         let currentIndex = 0;
         let isPlaying = false;
         let currentRepeat = 0;
@@ -630,7 +631,7 @@
                 const jpIndex = jpCol.charCodeAt(0) - 65;
                 const enIndex = enCol.charCodeAt(0) - 65;
 
-                learningData = rows
+                originalData = rows
                     .slice(1)
                     .filter(row => row[jpIndex] && row[enIndex])
                     .map(row => ({
@@ -638,10 +639,13 @@
                         english: row[enIndex].trim()
                     }));
 
-                if (learningData.length === 0) {
+                if (originalData.length === 0) {
                     alert('データが見つかりませんでした。列の設定を確認してください。');
                     return;
                 }
+
+                // 元のデータをコピー
+                learningData = [...originalData];
 
                 currentIndex = 0;
                 document.getElementById('setupSection').classList.add('hidden');
@@ -777,10 +781,14 @@
 
             if (learningData.length === 0) return;
 
-            // 停止後の再開でなければシャッフルとインデックスリセット
+            // 最初の開始時（停止後の再開でない場合）
             if (currentIndex === 0 && !currentItem) {
+                // シャッフルモードなら元のデータをシャッフル
                 if (document.getElementById('shuffleMode').checked) {
-                    learningData = shuffleArray(learningData);
+                    learningData = shuffleArray([...originalData]);
+                } else {
+                    // 通常モードなら元のデータをそのままコピー
+                    learningData = [...originalData];
                 }
                 currentRepeat = 0;
             }
@@ -955,6 +963,7 @@
             document.getElementById('controlSection').classList.add('hidden');
             document.getElementById('currentText').textContent = '準備完了';
             learningData = [];
+            originalData = [];
         }
     </script>
 </body>
