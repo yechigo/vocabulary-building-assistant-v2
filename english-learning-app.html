@@ -620,6 +620,9 @@
             const settingsIcon = document.getElementById('settingsToggleIcon');
             settingsContent.classList.remove('open');
             settingsIcon.textContent = '▼';
+
+            // 最新データを自動読み込み
+            await loadDataFromAppsScript();
         });
 
         // ========================================
