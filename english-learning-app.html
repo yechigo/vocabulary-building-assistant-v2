@@ -325,14 +325,11 @@
                 <div class="progress" id="progress">0 / 0</div>
             </div>
 
-            <button class="btn-primary" id="startBtn" onclick="startLearning()">学習を開始</button>
-            <button class="btn-primary hidden" id="pauseBtn" onclick="pauseLearning()">一時停止</button>
-            <button class="btn-primary hidden" id="resumeBtn" onclick="resumeLearning()">再開</button>
+            <button class="btn-primary" id="playPauseBtn" onclick="togglePlayPause()">▶ 学習を開始</button>
             <button class="btn-danger hidden" id="stopBtn" onclick="stopLearning()">停止</button>
 
             <div class="playback-controls hidden" id="navControls">
                 <button class="btn-secondary" id="prevBtn" onclick="gotoPrevious()">⏮ 前へ</button>
-                <button class="btn-secondary" id="replayBtn" onclick="replayCurrent()">🔄 再生</button>
                 <button class="btn-secondary" id="nextBtn" onclick="gotoNext()">次へ ⏭</button>
             </div>
 
@@ -731,6 +728,34 @@
             return shuffled;
         }
 
+        // 統合された再生/一時停止ボタン
+        function togglePlayPause() {
+            if (!isPlaying) {
+                // 停止状態から開始 or 一時停止から再開
+                if (currentIndex === 0 && currentRepeat === 0 && !currentItem) {
+                    // 最初から開始
+                    startLearning();
+                } else {
+                    // 再開
+                    resumeLearning();
+                }
+            } else {
+                // 一時停止
+                pauseLearning();
+            }
+        }
+
+        function updatePlayPauseButton() {
+            const btn = document.getElementById('playPauseBtn');
+            if (!isPlaying) {
+                btn.textContent = '▶ 再生';
+                btn.classList.remove('hidden');
+            } else {
+                btn.textContent = '⏸ 一時停止';
+                btn.classList.remove('hidden');
+            }
+        }
+
         async function startLearning() {
             // APIキーチェック
             if (!getApiKey()) {
@@ -747,8 +772,8 @@
             isPlaying = true;
             currentIndex = 0;
             currentRepeat = 0;
-            document.getElementById('startBtn').classList.add('hidden');
-            document.getElementById('pauseBtn').classList.remove('hidden');
+
+            updatePlayPauseButton();
             document.getElementById('stopBtn').classList.remove('hidden');
             document.getElementById('navControls').classList.remove('hidden');
 
@@ -770,11 +795,6 @@
                 currentIndex++;
                 restartCurrentSentence();
             }
-        }
-
-        function replayCurrent() {
-            // 現在のセンテンスを最初から再生
-            restartCurrentSentence();
         }
 
         function restartCurrentSentence() {
@@ -803,14 +823,12 @@
                 clearTimeout(waitTimeoutId);
                 waitTimeoutId = null;
             }
-            document.getElementById('pauseBtn').classList.add('hidden');
-            document.getElementById('resumeBtn').classList.remove('hidden');
+            updatePlayPauseButton();
         }
 
         function resumeLearning() {
             isPlaying = true;
-            document.getElementById('resumeBtn').classList.add('hidden');
-            document.getElementById('pauseBtn').classList.remove('hidden');
+            updatePlayPauseButton();
 
             // 音声が一時停止中なら再生
             if (audioPlayer && audioPlayer.paused && audioPlayer.src) {
@@ -906,13 +924,15 @@
                 audioPlayer.src = '';
             }
 
-            document.getElementById('startBtn').classList.remove('hidden');
-            document.getElementById('pauseBtn').classList.add('hidden');
-            document.getElementById('resumeBtn').classList.add('hidden');
-            document.getElementById('stopBtn').classList.add('hidden');
-            document.getElementById('navControls').classList.add('hidden');
             currentRepeat = 0;
             currentIndex = 0;
+
+            // ボタンを初期状態に戻す
+            const playPauseBtn = document.getElementById('playPauseBtn');
+            playPauseBtn.textContent = '▶ 学習を開始';
+            playPauseBtn.classList.remove('hidden');
+            document.getElementById('stopBtn').classList.add('hidden');
+            document.getElementById('navControls').classList.add('hidden');
         }
 
         function backToSetup() {
