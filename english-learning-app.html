@@ -303,6 +303,33 @@
                         </div>
                     </div>
 
+                    <div class="settings-grid">
+                        <div>
+                            <label for="jaVoice">日本語の音声:</label>
+                            <select id="jaVoice" style="width: 100%; padding: 12px; border: 2px solid #e0e0e0; border-radius: 10px; font-size: 14px;">
+                                <option value="ja-JP-Standard-A">女性 A</option>
+                                <option value="ja-JP-Standard-B">女性 B</option>
+                                <option value="ja-JP-Standard-C">男性 C</option>
+                                <option value="ja-JP-Standard-D">男性 D</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label for="enVoice">英語の音声:</label>
+                            <select id="enVoice" style="width: 100%; padding: 12px; border: 2px solid #e0e0e0; border-radius: 10px; font-size: 14px;">
+                                <option value="en-US-Standard-A">男性 A</option>
+                                <option value="en-US-Standard-B">男性 B</option>
+                                <option value="en-US-Standard-C" selected>女性 C</option>
+                                <option value="en-US-Standard-D">男性 D</option>
+                                <option value="en-US-Standard-E">女性 E</option>
+                                <option value="en-US-Standard-F">女性 F</option>
+                                <option value="en-US-Standard-G">女性 G</option>
+                                <option value="en-US-Standard-H">女性 H</option>
+                                <option value="en-US-Standard-I">男性 I</option>
+                                <option value="en-US-Standard-J">男性 J</option>
+                            </select>
+                        </div>
+                    </div>
+
                     <div class="api-setup">
                         <div class="toggle-section" onclick="toggleApiSetup()">
                             ⚙️ Google Cloud TTS API 設定 <span id="apiToggleIcon">▼</span>
@@ -455,9 +482,15 @@
                 throw new Error('APIキーが設定されていません。設定セクションでAPIキーを入力してください。');
             }
 
-            const voiceConfig = lang === 'ja-JP'
-                ? { languageCode: 'ja-JP', name: 'ja-JP-Standard-A' }
-                : { languageCode: 'en-US', name: 'en-US-Standard-C' };
+            // 選択された音声を取得
+            const selectedVoice = lang === 'ja-JP'
+                ? document.getElementById('jaVoice').value
+                : document.getElementById('enVoice').value;
+
+            const voiceConfig = {
+                languageCode: lang,
+                name: selectedVoice
+            };
 
             const requestBody = {
                 input: { text: text },
@@ -618,6 +651,20 @@
             if (savedApiKey) {
                 document.getElementById('apiKey').value = savedApiKey;
             }
+
+            // 音声選択の設定を復元
+            const savedJaVoice = localStorage.getItem('jaVoice') || 'ja-JP-Standard-A';
+            const savedEnVoice = localStorage.getItem('enVoice') || 'en-US-Standard-C';
+            document.getElementById('jaVoice').value = savedJaVoice;
+            document.getElementById('enVoice').value = savedEnVoice;
+
+            // 音声選択の変更を保存
+            document.getElementById('jaVoice').addEventListener('change', (e) => {
+                localStorage.setItem('jaVoice', e.target.value);
+            });
+            document.getElementById('enVoice').addEventListener('change', (e) => {
+                localStorage.setItem('enVoice', e.target.value);
+            });
 
             // 設定は閉じた状態で開始
             const settingsContent = document.getElementById('settingsContent');
