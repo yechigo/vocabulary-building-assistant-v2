@@ -967,6 +967,54 @@
                 document.getElementById('progress').textContent = '0 / 0';
             }
         }
+
+        // シャッフルモード切り替え時の処理
+        document.getElementById('shuffleMode').addEventListener('change', function() {
+            if (!isPlaying || learningData.length === 0) {
+                return; // 再生中でない場合は何もしない
+            }
+
+            // 現在再生中の項目を保持
+            const currentItemData = currentItem;
+
+            if (this.checked) {
+                // シャッフルON: 残りのデータをシャッフル
+                // 現在の項目より後ろの未再生データを取得
+                const remainingIndices = [];
+                for (let i = currentIndex + 1; i < learningData.length; i++) {
+                    remainingIndices.push(i);
+                }
+
+                // 未再生データをシャッフル
+                const shuffledRemaining = shuffleArray(remainingIndices);
+
+                // 新しい learningData を構築
+                const newLearningData = [];
+                // 現在までの再生済みデータ
+                for (let i = 0; i <= currentIndex; i++) {
+                    newLearningData.push(learningData[i]);
+                }
+                // シャッフルした残りデータ
+                for (const idx of shuffledRemaining) {
+                    newLearningData.push(learningData[idx]);
+                }
+
+                learningData = newLearningData;
+            } else {
+                // シャッフルOFF: 元の順序に戻す
+                // 現在の項目が元のデータの何番目かを探す
+                const currentItemIndex = originalData.findIndex(item =>
+                    item.japanese === currentItemData.japanese &&
+                    item.english === currentItemData.english
+                );
+
+                if (currentItemIndex !== -1) {
+                    // 元の順序で現在の項目以降を配置
+                    learningData = [...originalData];
+                    currentIndex = currentItemIndex;
+                }
+            }
+        });
     </script>
 </body>
 </html>
