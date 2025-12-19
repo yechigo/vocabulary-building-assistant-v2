@@ -253,28 +253,6 @@
         <div class="version-badge">🔓 ロック画面対応版 + 音声キャッシュ</div>
 
         <div id="setupSection" class="setup-section">
-            <div class="info-box">
-                ✅ <strong>新機能:</strong><br>
-                • ロック画面でも音声再生が継続<br>
-                • 音声をキャッシュして2回目以降は即座に再生<br>
-                • Google Cloud TTS APIで高品質な音声
-            </div>
-
-            <div class="api-setup">
-                <div class="toggle-section" onclick="toggleApiSetup()">
-                    ⚙️ Google Cloud TTS API 設定 <span id="apiToggleIcon">▼</span>
-                </div>
-                <div id="apiSetupContent" class="collapsible-content">
-                    <label for="apiKey">API キー:</label>
-                    <input type="password" id="apiKey" placeholder="AIza...">
-                    <div class="help-text">
-                        ※ 初回のみ設定が必要です（ブラウザに保存されます）<br>
-                        ※ 設定手順は README を参照
-                    </div>
-                    <button class="btn-primary" onclick="saveApiKey()" style="margin-top: 10px;">API キーを保存</button>
-                </div>
-            </div>
-
             <div id="autoLoadSection" class="setup-section">
                 <div class="info-box">
                     ✅ Google Apps Script設定済み<br>
@@ -302,6 +280,21 @@
                 <div>
                     <label for="repeatCount">繰り返し回数:</label>
                     <input type="number" id="repeatCount" value="1" min="1" max="10">
+                </div>
+            </div>
+
+            <div class="api-setup">
+                <div class="toggle-section" onclick="toggleApiSetup()">
+                    ⚙️ Google Cloud TTS API 設定 <span id="apiToggleIcon">▼</span>
+                </div>
+                <div id="apiSetupContent" class="collapsible-content">
+                    <label for="apiKey">API キー:</label>
+                    <input type="password" id="apiKey" placeholder="AIza...">
+                    <div class="help-text">
+                        ※ 初回のみ設定が必要です（ブラウザに保存されます）<br>
+                        ※ 設定手順は README を参照
+                    </div>
+                    <button class="btn-primary" onclick="saveApiKey()" style="margin-top: 10px;">API キーを保存</button>
                 </div>
             </div>
 
