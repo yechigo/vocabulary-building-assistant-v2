@@ -328,6 +328,9 @@
         let currentRepeat = 0;
         let audioPlayer = null;
         let currentAudioBlob = null;
+        let currentPlaybackState = 'stopped'; // 'playing_japanese', 'waiting', 'playing_english', 'stopped'
+        let currentItem = null;
+        let waitTimeoutId = null;
 
         // ========================================
         // IndexedDB 初期化
@@ -510,29 +513,48 @@
                 };
 
                 await audioPlayer.play();
+                updateMediaSession();
 
-                // Media Session API でロック画面コントロール
-                if ('mediaSession' in navigator) {
-                    navigator.mediaSession.metadata = new MediaMetadata({
-                        title: text,
-                        artist: '英語学習アプリ',
-                        album: `${currentIndex + 1} / ${learningData.length}`
-                    });
-
-                    navigator.mediaSession.setActionHandler('play', () => {
-                        audioPlayer.play();
-                    });
-
-                    navigator.mediaSession.setActionHandler('pause', () => {
-                        audioPlayer.pause();
-                        pauseLearning();
-                    });
-                }
             } catch (error) {
                 console.error('Audio generation/playback error:', error);
                 alert('音声の生成または再生に失敗しました: ' + error.message);
                 if (callback) callback();
             }
+        }
+
+        // Media Session API の更新
+        function updateMediaSession() {
+            if ('mediaSession' in navigator && currentItem) {
+                const displayText = currentPlaybackState === 'playing_japanese'
+                    ? currentItem.japanese
+                    : currentItem.english;
+
+                navigator.mediaSession.metadata = new MediaMetadata({
+                    title: displayText,
+                    artist: '英語学習アプリ v2',
+                    album: `${currentIndex + 1} / ${learningData.length} (${currentRepeat + 1}周目)`
+                });
+
+                navigator.mediaSession.setActionHandler('play', handleMediaPlay);
+                navigator.mediaSession.setActionHandler('pause', handleMediaPause);
+                navigator.mediaSession.setActionHandler('previoustrack', null);
+                navigator.mediaSession.setActionHandler('nexttrack', null);
+            }
+        }
+
+        function handleMediaPlay() {
+            if (!isPlaying) {
+                resumeLearning();
+            } else if (audioPlayer && audioPlayer.paused) {
+                audioPlayer.play();
+            }
+        }
+
+        function handleMediaPause() {
+            if (audioPlayer && !audioPlayer.paused) {
+                audioPlayer.pause();
+            }
+            pauseLearning();
         }
 
         // ========================================
@@ -693,8 +715,12 @@
 
         function pauseLearning() {
             isPlaying = false;
-            if (audioPlayer) {
+            if (audioPlayer && !audioPlayer.paused) {
                 audioPlayer.pause();
+            }
+            if (waitTimeoutId) {
+                clearTimeout(waitTimeoutId);
+                waitTimeoutId = null;
             }
             document.getElementById('pauseBtn').classList.add('hidden');
             document.getElementById('resumeBtn').classList.remove('hidden');
@@ -705,9 +731,16 @@
             document.getElementById('resumeBtn').classList.add('hidden');
             document.getElementById('pauseBtn').classList.remove('hidden');
 
-            if (audioPlayer && audioPlayer.paused) {
+            // 音声が一時停止中なら再生
+            if (audioPlayer && audioPlayer.paused && audioPlayer.src) {
                 audioPlayer.play();
-            } else {
+            }
+            // 待機中だった場合は待機を再開してから次へ
+            else if (currentPlaybackState === 'waiting') {
+                continueAfterWait();
+            }
+            // それ以外は次の項目へ
+            else {
                 playNext();
             }
         }
@@ -730,36 +763,68 @@
                 return;
             }
 
-            const item = learningData[currentIndex];
+            currentItem = learningData[currentIndex];
             const waitTime = parseInt(document.getElementById('waitTime').value) * 1000;
 
             document.getElementById('progress').textContent =
                 `${currentIndex + 1} / ${learningData.length} (${currentRepeat + 1}周目)`;
 
             // 和訳を表示して読み上げ
-            document.getElementById('currentText').textContent = item.japanese;
-            await playAudio(item.japanese, 'ja-JP', () => {
-                // 待機時間後に英文を読み上げ
-                setTimeout(async () => {
-                    if (!isPlaying) return;
+            currentPlaybackState = 'playing_japanese';
+            document.getElementById('currentText').textContent = currentItem.japanese;
+            await playAudio(currentItem.japanese, 'ja-JP', onJapaneseEnded);
+        }
 
-                    document.getElementById('currentText').textContent = item.english;
-                    await playAudio(item.english, 'en-US', () => {
-                        currentIndex++;
-                        setTimeout(() => {
-                            if (isPlaying) playNext();
-                        }, 1000);
-                    });
-                }, waitTime);
-            });
+        function onJapaneseEnded() {
+            if (!isPlaying) return;
+
+            // 待機状態に移行
+            currentPlaybackState = 'waiting';
+            const waitTime = parseInt(document.getElementById('waitTime').value) * 1000;
+
+            waitTimeoutId = setTimeout(() => {
+                continueAfterWait();
+            }, waitTime);
+        }
+
+        async function continueAfterWait() {
+            if (!isPlaying) return;
+
+            waitTimeoutId = null;
+
+            // 英文を表示して読み上げ
+            currentPlaybackState = 'playing_english';
+            document.getElementById('currentText').textContent = currentItem.english;
+            await playAudio(currentItem.english, 'en-US', onEnglishEnded);
+        }
+
+        function onEnglishEnded() {
+            if (!isPlaying) return;
+
+            currentIndex++;
+            currentPlaybackState = 'stopped';
+
+            // 次の項目へ（少し間を空ける）
+            setTimeout(() => {
+                if (isPlaying) playNext();
+            }, 1000);
         }
 
         function stopLearning() {
             isPlaying = false;
+            currentPlaybackState = 'stopped';
+            currentItem = null;
+
+            if (waitTimeoutId) {
+                clearTimeout(waitTimeoutId);
+                waitTimeoutId = null;
+            }
+
             if (audioPlayer) {
                 audioPlayer.pause();
                 audioPlayer.src = '';
             }
+
             document.getElementById('startBtn').classList.remove('hidden');
             document.getElementById('pauseBtn').classList.add('hidden');
             document.getElementById('resumeBtn').classList.add('hidden');
