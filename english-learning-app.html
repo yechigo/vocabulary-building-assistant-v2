@@ -271,6 +271,13 @@
                 </label>
             </div>
 
+            <div style="margin-top: 10px; text-align: center;">
+                <label style="display: inline-flex; align-items: center; cursor: pointer; font-size: 14px;">
+                    <input type="checkbox" id="loopMode" style="width: auto; margin-right: 8px;">
+                    <span>🔁 無限ループ</span>
+                </label>
+            </div>
+
             <button class="btn-danger hidden" id="stopBtn" onclick="stopLearning()">停止して最初に戻る</button>
 
             <button class="btn-primary" onclick="loadDataFromAppsScript()">最新データを読み込み</button>
@@ -296,10 +303,6 @@
                         <div>
                             <label for="waitTime">待機時間（秒）:</label>
                             <input type="number" id="waitTime" value="5" min="1" max="30">
-                        </div>
-                        <div>
-                            <label for="repeatCount">繰り返し回数:</label>
-                            <input type="number" id="repeatCount" value="1" min="1" max="10">
                         </div>
                     </div>
 
@@ -346,7 +349,6 @@
         let originalData = []; // 元のデータを保持（シャッフル前）
         let currentIndex = 0;
         let isPlaying = false;
-        let currentRepeat = 0;
         let audioPlayer = null;
         let currentAudioBlob = null;
         let currentPlaybackState = 'stopped'; // 'playing_japanese', 'waiting', 'playing_english', 'stopped'
@@ -553,7 +555,7 @@
                 navigator.mediaSession.metadata = new MediaMetadata({
                     title: displayText,
                     artist: '英語学習アプリ v2',
-                    album: `${currentIndex + 1} / ${learningData.length} (${currentRepeat + 1}周目)`
+                    album: `${currentIndex + 1} / ${learningData.length}`
                 });
 
                 navigator.mediaSession.setActionHandler('play', handleMediaPlay);
@@ -793,7 +795,6 @@
                     // 通常モードなら元のデータをそのままコピー
                     learningData = [...originalData];
                 }
-                currentRepeat = 0;
             }
 
             isPlaying = true;
@@ -870,15 +871,20 @@
         async function playNext() {
             if (!isPlaying || currentIndex >= learningData.length) {
                 if (isPlaying) {
-                    const repeatCount = parseInt(document.getElementById('repeatCount').value);
-                    currentRepeat++;
+                    // 無限ループモードがONの場合は最初から繰り返す
+                    const loopMode = document.getElementById('loopMode').checked;
 
-                    if (currentRepeat < repeatCount) {
+                    if (loopMode) {
                         currentIndex = 0;
+                        // シャッフルモードの場合は再シャッフル
+                        if (document.getElementById('shuffleMode').checked) {
+                            learningData = shuffleArray([...originalData]);
+                        }
                         playNext();
                         return;
                     }
 
+                    // ループモードOFFの場合は終了
                     document.getElementById('currentText').textContent = '学習完了！お疲れ様でした！';
                     stopLearning();
                 }
@@ -889,7 +895,7 @@
             const waitTime = parseInt(document.getElementById('waitTime').value) * 1000;
 
             document.getElementById('progress').textContent =
-                `${currentIndex + 1} / ${learningData.length} (${currentRepeat + 1}周目)`;
+                `${currentIndex + 1} / ${learningData.length}`;
 
             // 和訳を表示して読み上げ
             currentPlaybackState = 'playing_japanese';
@@ -947,7 +953,6 @@
                 audioPlayer.src = '';
             }
 
-            currentRepeat = 0;
             currentIndex = 0;
 
             // ボタンを初期状態に戻す
