@@ -285,32 +285,23 @@
 
             <div class="settings-grid">
                 <div>
-                    <label for="waitTime">待機時間（秒）:</label>
-                    <input type="number" id="waitTime" value="5" min="1" max="30">
-                </div>
-                <div>
-                    <label for="repeatCount">繰り返し回数:</label>
-                    <input type="number" id="repeatCount" value="1" min="1" max="10">
-                </div>
-            </div>
-
-            <div class="settings-grid">
-                <div style="grid-column: 1 / -1;">
-                    <label style="display: flex; align-items: center; cursor: pointer;">
-                        <input type="checkbox" id="shuffleMode" style="width: auto; margin-right: 8px;">
-                        <span>シャッフルモード（ランダム順で再生）</span>
-                    </label>
-                </div>
-            </div>
-
-            <div class="settings-grid">
-                <div>
                     <label for="jpColumn">和訳の列:</label>
                     <input type="text" id="jpColumn" value="C" maxlength="2">
                 </div>
                 <div>
                     <label for="enColumn">英文の列:</label>
                     <input type="text" id="enColumn" value="B" maxlength="2">
+                </div>
+            </div>
+
+            <div class="settings-grid">
+                <div>
+                    <label for="waitTime">待機時間（秒）:</label>
+                    <input type="number" id="waitTime" value="5" min="1" max="30">
+                </div>
+                <div>
+                    <label for="repeatCount">繰り返し回数:</label>
+                    <input type="number" id="repeatCount" value="1" min="1" max="10">
                 </div>
             </div>
 
@@ -331,6 +322,13 @@
                 <button class="btn-secondary" id="prevBtn" onclick="gotoPrevious()" disabled>⏮ 前へ</button>
                 <button class="btn-primary" id="playPauseBtn" onclick="togglePlayPause()" disabled>▶ 再生</button>
                 <button class="btn-secondary" id="nextBtn" onclick="gotoNext()" disabled>次へ ⏭</button>
+            </div>
+
+            <div style="margin-top: 15px; text-align: center;">
+                <label style="display: inline-flex; align-items: center; cursor: pointer; font-size: 14px;">
+                    <input type="checkbox" id="shuffleMode" style="width: auto; margin-right: 8px;">
+                    <span>🔀 シャッフルモード（ランダム順で再生）</span>
+                </label>
             </div>
 
             <button class="btn-danger hidden" id="stopBtn" onclick="stopLearning()">停止して最初に戻る</button>
