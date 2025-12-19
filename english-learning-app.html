@@ -219,6 +219,32 @@
             margin-top: 10px;
             font-size: 12px;
         }
+
+        .playback-controls {
+            display: flex;
+            gap: 10px;
+            margin-top: 10px;
+        }
+
+        .playback-controls button {
+            flex: 1;
+            padding: 12px;
+            font-size: 14px;
+        }
+
+        .btn-secondary {
+            background: #6b7280;
+            color: white;
+        }
+
+        .btn-secondary:hover {
+            background: #4b5563;
+        }
+
+        .btn-secondary:disabled {
+            background: #d1d5db;
+            cursor: not-allowed;
+        }
     </style>
 </head>
 <body>
@@ -303,6 +329,13 @@
             <button class="btn-primary hidden" id="pauseBtn" onclick="pauseLearning()">一時停止</button>
             <button class="btn-primary hidden" id="resumeBtn" onclick="resumeLearning()">再開</button>
             <button class="btn-danger hidden" id="stopBtn" onclick="stopLearning()">停止</button>
+
+            <div class="playback-controls hidden" id="navControls">
+                <button class="btn-secondary" id="prevBtn" onclick="gotoPrevious()">⏮ 前へ</button>
+                <button class="btn-secondary" id="replayBtn" onclick="replayCurrent()">🔄 再生</button>
+                <button class="btn-secondary" id="nextBtn" onclick="gotoNext()">次へ ⏭</button>
+            </div>
+
             <button class="btn-primary" onclick="backToSetup()">設定に戻る</button>
             <button class="btn-danger" onclick="clearCache()" style="margin-top: 5px; font-size: 14px;">キャッシュをクリア</button>
         </div>
@@ -537,8 +570,8 @@
 
                 navigator.mediaSession.setActionHandler('play', handleMediaPlay);
                 navigator.mediaSession.setActionHandler('pause', handleMediaPause);
-                navigator.mediaSession.setActionHandler('previoustrack', null);
-                navigator.mediaSession.setActionHandler('nexttrack', null);
+                navigator.mediaSession.setActionHandler('previoustrack', handleMediaPrevious);
+                navigator.mediaSession.setActionHandler('nexttrack', handleMediaNext);
             }
         }
 
@@ -555,6 +588,14 @@
                 audioPlayer.pause();
             }
             pauseLearning();
+        }
+
+        function handleMediaPrevious() {
+            gotoPrevious();
+        }
+
+        function handleMediaNext() {
+            gotoNext();
         }
 
         // ========================================
@@ -709,8 +750,48 @@
             document.getElementById('startBtn').classList.add('hidden');
             document.getElementById('pauseBtn').classList.remove('hidden');
             document.getElementById('stopBtn').classList.remove('hidden');
+            document.getElementById('navControls').classList.remove('hidden');
 
             playNext();
+        }
+
+        // ナビゲーション機能
+        function gotoPrevious() {
+            // 現在のインデックスが0より大きければ前に戻る
+            if (currentIndex > 0) {
+                currentIndex--;
+                restartCurrentSentence();
+            }
+        }
+
+        function gotoNext() {
+            // 次のセンテンスがあれば進む
+            if (currentIndex < learningData.length - 1) {
+                currentIndex++;
+                restartCurrentSentence();
+            }
+        }
+
+        function replayCurrent() {
+            // 現在のセンテンスを最初から再生
+            restartCurrentSentence();
+        }
+
+        function restartCurrentSentence() {
+            // 再生中の音声とタイマーを停止
+            if (audioPlayer) {
+                audioPlayer.pause();
+                audioPlayer.src = '';
+            }
+            if (waitTimeoutId) {
+                clearTimeout(waitTimeoutId);
+                waitTimeoutId = null;
+            }
+
+            // 自動再生が有効なら現在のセンテンスを再生
+            if (isPlaying) {
+                playNext();
+            }
         }
 
         function pauseLearning() {
@@ -829,6 +910,7 @@
             document.getElementById('pauseBtn').classList.add('hidden');
             document.getElementById('resumeBtn').classList.add('hidden');
             document.getElementById('stopBtn').classList.add('hidden');
+            document.getElementById('navControls').classList.add('hidden');
             currentRepeat = 0;
             currentIndex = 0;
         }
