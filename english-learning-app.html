@@ -325,13 +325,13 @@
                 <div class="progress" id="progress">0 / 0</div>
             </div>
 
-            <button class="btn-primary" id="playPauseBtn" onclick="togglePlayPause()">▶ 学習を開始</button>
-            <button class="btn-danger hidden" id="stopBtn" onclick="stopLearning()">停止</button>
-
-            <div class="playback-controls hidden" id="navControls">
-                <button class="btn-secondary" id="prevBtn" onclick="gotoPrevious()">⏮ 前へ</button>
-                <button class="btn-secondary" id="nextBtn" onclick="gotoNext()">次へ ⏭</button>
+            <div class="playback-controls">
+                <button class="btn-secondary" id="prevBtn" onclick="gotoPrevious()" disabled>⏮ 前へ</button>
+                <button class="btn-primary" id="playPauseBtn" onclick="togglePlayPause()" disabled>▶ 再生</button>
+                <button class="btn-secondary" id="nextBtn" onclick="gotoNext()" disabled>次へ ⏭</button>
             </div>
+
+            <button class="btn-danger hidden" id="stopBtn" onclick="stopLearning()">停止して最初に戻る</button>
 
             <button class="btn-primary" onclick="backToSetup()">設定に戻る</button>
             <button class="btn-danger" onclick="clearCache()" style="margin-top: 5px; font-size: 14px;">キャッシュをクリア</button>
@@ -650,9 +650,24 @@
                 document.getElementById('currentText').textContent = `${learningData.length}件のデータを読み込みました`;
                 document.getElementById('progress').textContent = `0 / ${learningData.length}`;
 
+                // コントロールボタンを有効化
+                enableControls();
+
             } catch (error) {
                 alert('データの処理中にエラーが発生しました: ' + error.message);
             }
+        }
+
+        function enableControls() {
+            document.getElementById('playPauseBtn').disabled = false;
+            document.getElementById('prevBtn').disabled = false;
+            document.getElementById('nextBtn').disabled = false;
+        }
+
+        function disableControls() {
+            document.getElementById('playPauseBtn').disabled = true;
+            document.getElementById('prevBtn').disabled = true;
+            document.getElementById('nextBtn').disabled = true;
         }
 
         async function loadDataFromAppsScript() {
@@ -732,11 +747,11 @@
         function togglePlayPause() {
             if (!isPlaying) {
                 // 停止状態から開始 or 一時停止から再開
-                if (currentIndex === 0 && currentRepeat === 0 && !currentItem) {
-                    // 最初から開始
+                if (!currentItem) {
+                    // 最初から開始（またはstop後の再開）
                     startLearning();
                 } else {
-                    // 再開
+                    // 一時停止からの再開
                     resumeLearning();
                 }
             } else {
@@ -749,10 +764,8 @@
             const btn = document.getElementById('playPauseBtn');
             if (!isPlaying) {
                 btn.textContent = '▶ 再生';
-                btn.classList.remove('hidden');
             } else {
                 btn.textContent = '⏸ 一時停止';
-                btn.classList.remove('hidden');
             }
         }
 
@@ -765,17 +778,17 @@
 
             if (learningData.length === 0) return;
 
-            if (document.getElementById('shuffleMode').checked) {
-                learningData = shuffleArray(learningData);
+            // 停止後の再開でなければシャッフルとインデックスリセット
+            if (currentIndex === 0 && !currentItem) {
+                if (document.getElementById('shuffleMode').checked) {
+                    learningData = shuffleArray(learningData);
+                }
+                currentRepeat = 0;
             }
 
             isPlaying = true;
-            currentIndex = 0;
-            currentRepeat = 0;
-
             updatePlayPauseButton();
             document.getElementById('stopBtn').classList.remove('hidden');
-            document.getElementById('navControls').classList.remove('hidden');
 
             playNext();
         }
@@ -928,15 +941,17 @@
             currentIndex = 0;
 
             // ボタンを初期状態に戻す
-            const playPauseBtn = document.getElementById('playPauseBtn');
-            playPauseBtn.textContent = '▶ 学習を開始';
-            playPauseBtn.classList.remove('hidden');
+            updatePlayPauseButton();
             document.getElementById('stopBtn').classList.add('hidden');
-            document.getElementById('navControls').classList.add('hidden');
+
+            // 進捗をリセット
+            document.getElementById('currentText').textContent = `${learningData.length}件のデータを読み込みました`;
+            document.getElementById('progress').textContent = `0 / ${learningData.length}`;
         }
 
         function backToSetup() {
             stopLearning();
+            disableControls();
             document.getElementById('setupSection').classList.remove('hidden');
             document.getElementById('controlSection').classList.add('hidden');
             document.getElementById('currentText').textContent = '準備完了';
