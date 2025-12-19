@@ -228,8 +228,8 @@
 
         .playback-controls button {
             flex: 1;
-            padding: 12px;
-            font-size: 14px;
+            padding: 15px;
+            font-size: 24px;
         }
 
         .btn-secondary {
@@ -319,9 +319,9 @@
             </div>
 
             <div class="playback-controls">
-                <button class="btn-secondary" id="prevBtn" onclick="gotoPrevious()" disabled>⏮ 前へ</button>
-                <button class="btn-primary" id="playPauseBtn" onclick="togglePlayPause()" disabled>▶ 再生</button>
-                <button class="btn-secondary" id="nextBtn" onclick="gotoNext()" disabled>次へ ⏭</button>
+                <button class="btn-secondary" id="prevBtn" onclick="gotoPrevious()" disabled>⏮</button>
+                <button class="btn-primary" id="playPauseBtn" onclick="togglePlayPause()" disabled>▶</button>
+                <button class="btn-secondary" id="nextBtn" onclick="gotoNext()" disabled>⏭</button>
             </div>
 
             <div style="margin-top: 15px; text-align: center;">
@@ -766,9 +766,9 @@
         function updatePlayPauseButton() {
             const btn = document.getElementById('playPauseBtn');
             if (!isPlaying) {
-                btn.textContent = '▶ 再生';
+                btn.textContent = '▶';
             } else {
-                btn.textContent = '⏸ 一時停止';
+                btn.textContent = '⏸';
             }
         }
 
