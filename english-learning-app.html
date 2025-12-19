@@ -562,11 +562,17 @@
             }
         }
 
-        function handleMediaPlay() {
+        async function handleMediaPlay() {
             if (!isPlaying) {
-                resumeLearning();
+                await resumeLearning();
             } else if (audioPlayer && audioPlayer.paused) {
-                audioPlayer.play();
+                try {
+                    await audioPlayer.play();
+                } catch (error) {
+                    console.error('Failed to resume audio:', error);
+                    // 再生に失敗した場合は最初から再生
+                    await resumeLearning();
+                }
             }
         }
 
@@ -618,6 +624,14 @@
             const settingsIcon = document.getElementById('settingsToggleIcon');
             settingsContent.classList.remove('open');
             settingsIcon.textContent = '▼';
+
+            // Media Session APIのアクションハンドラーを初期化
+            if ('mediaSession' in navigator) {
+                navigator.mediaSession.setActionHandler('play', handleMediaPlay);
+                navigator.mediaSession.setActionHandler('pause', handleMediaPause);
+                navigator.mediaSession.setActionHandler('previoustrack', handleMediaPrevious);
+                navigator.mediaSession.setActionHandler('nexttrack', handleMediaNext);
+            }
 
             // 最新データを自動読み込み
             await loadDataFromAppsScript();
@@ -850,17 +864,27 @@
             updatePlayPauseButton();
         }
 
-        function resumeLearning() {
+        async function resumeLearning() {
             isPlaying = true;
             updatePlayPauseButton();
 
             // 音声が一時停止中なら再生
             if (audioPlayer && audioPlayer.paused && audioPlayer.src) {
-                audioPlayer.play();
+                try {
+                    await audioPlayer.play();
+                } catch (error) {
+                    console.error('Resume failed, restarting current sentence:', error);
+                    // 再生失敗時は現在のセンテンスを最初から再生
+                    playNext();
+                }
             }
             // 待機中だった場合は待機を再開してから次へ
             else if (currentPlaybackState === 'waiting') {
                 continueAfterWait();
+            }
+            // 音声プレイヤーが無効になっている場合は現在のセンテンスを再生
+            else if (currentItem) {
+                playNext();
             }
             // それ以外は次の項目へ
             else {
