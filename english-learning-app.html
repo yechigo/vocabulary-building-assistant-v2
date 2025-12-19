@@ -279,8 +279,6 @@
 
             <button class="btn-danger hidden" id="stopBtn" onclick="stopLearning()">停止して最初に戻る</button>
 
-            <button class="btn-primary" onclick="loadDataFromAppsScript()">最新データを読み込み</button>
-
             <div class="api-setup" style="margin-top: 15px;">
                 <div class="toggle-section" onclick="toggleSettings()">
                     ⚙️ 設定を開く <span id="settingsToggleIcon">▼</span>
@@ -940,7 +938,7 @@
             }, 1000);
         }
 
-        function stopLearning() {
+        async function stopLearning() {
             isPlaying = false;
             currentPlaybackState = 'stopped';
             currentItem = null;
@@ -961,14 +959,8 @@
             updatePlayPauseButton();
             document.getElementById('stopBtn').classList.add('hidden');
 
-            // 進捗をリセット
-            if (learningData.length > 0) {
-                document.getElementById('currentText').textContent = `${learningData.length}件のデータを読み込みました`;
-                document.getElementById('progress').textContent = `0 / ${learningData.length}`;
-            } else {
-                document.getElementById('currentText').textContent = '準備完了';
-                document.getElementById('progress').textContent = '0 / 0';
-            }
+            // 最新データを自動読み込み
+            await loadDataFromAppsScript();
         }
 
         // シャッフルモード切り替え時の処理
